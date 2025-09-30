@@ -1,0 +1,108 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.localdata////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.localdata/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.localdata//mainDataStore/android.content.Context#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.localdata/main-data-store.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.localdata/MainDataSerializer///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.localdata/-main-data-serializer/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.localdata/MainDataSerializer/defaultValue/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.localdata/-main-data-serializer/default-value.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.localdata/MainDataSerializer/readFrom/#java.io.InputStream/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.localdata/-main-data-serializer/read-from.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.localdata/MainDataSerializer/writeTo/#[Error type: Unresolved type for MainData]#java.io.OutputStream/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.localdata/-main-data-serializer/write-to.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository/MainMainRepository///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/-main-main-repository/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository/MainMainRepository/MainMainRepository/#android.content.Context/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/-main-main-repository/-main-main-repository.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository/MainMainRepository/context/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/-main-main-repository/context.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository/MainMainRepository/loadCounter/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/-main-main-repository/load-counter.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository/MainMainRepository/saveCounter/#kotlin.Int/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/-main-main-repository/save-counter.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository/RepositoryModule///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/-repository-module/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository/RepositoryModule/RepositoryModule/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/-repository-module/-repository-module.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.data.repository/RepositoryModule/bindRepositoryInterface/#com.jvckenwood.cabmee.simpleoperator.data.repository.MainMainRepository/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.data.repository/-repository-module/bind-repository-interface.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.entity////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.entity/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.entity/MainEntity///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.entity/-main-entity/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.entity/MainEntity/MainEntity/#kotlin.Int/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.entity/-main-entity/-main-entity.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.entity/MainEntity/counter/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.entity/-main-entity/counter.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.entity/StateManager///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.entity/-state-manager/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.entity/StateManager/StateManager/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.entity/-state-manager/-state-manager.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.entity/StateManager/mainState/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.entity/-state-manager/main-state.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.entity/StateManager/updateMainState/#com.jvckenwood.cabmee.simpleoperator.domain.state.MainState/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.entity/-state-manager/update-main-state.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.interfaces////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.interfaces/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.interfaces/MainRepositoryInterface///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.interfaces/-main-repository-interface/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.interfaces/MainRepositoryInterface/loadCounter/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.interfaces/-main-repository-interface/load-counter.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.interfaces/MainRepositoryInterface/saveCounter/#kotlin.Int/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.interfaces/-main-repository-interface/save-counter.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Error///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-error/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Error/Error/#com.jvckenwood.cabmee.simpleoperator.domain.entity.MainEntity/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-error/-error.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Error/mainData/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-error/main-data.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Init///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-init/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Init/Init/#com.jvckenwood.cabmee.simpleoperator.domain.entity.MainEntity/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-init/-init.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Init/mainData/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-init/main-data.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Success///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-success/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Success/Success/#com.jvckenwood.cabmee.simpleoperator.domain.entity.MainEntity/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-success/-success.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState.Success/mainData/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/-success/main-data.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.state/MainState///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.state/-main-state/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/ClearCounterUseCase///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-clear-counter-use-case/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/ClearCounterUseCase/ClearCounterUseCase/#com.jvckenwood.cabmee.simpleoperator.domain.interfaces.MainRepositoryInterface#com.jvckenwood.cabmee.simpleoperator.domain.entity.StateManager/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-clear-counter-use-case/-clear-counter-use-case.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/ClearCounterUseCase/invoke/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-clear-counter-use-case/invoke.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/FetchCounterUseCase///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-fetch-counter-use-case/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/FetchCounterUseCase/FetchCounterUseCase/#com.jvckenwood.cabmee.simpleoperator.domain.interfaces.MainRepositoryInterface#com.jvckenwood.cabmee.simpleoperator.domain.entity.StateManager/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-fetch-counter-use-case/-fetch-counter-use-case.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/FetchCounterUseCase/invoke/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-fetch-counter-use-case/invoke.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/IncrementCounterUseCase///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-increment-counter-use-case/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/IncrementCounterUseCase/IncrementCounterUseCase/#com.jvckenwood.cabmee.simpleoperator.domain.interfaces.MainRepositoryInterface#com.jvckenwood.cabmee.simpleoperator.domain.entity.StateManager/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-increment-counter-use-case/-increment-counter-use-case.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.domain.usecase/IncrementCounterUseCase/invoke/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.domain.usecase/-increment-counter-use-case/invoke.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme//Pink40/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/-pink40.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme//Pink80/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/-pink80.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme//Purple40/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/-purple40.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme//Purple80/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/-purple80.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme//PurpleGrey40/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/-purple-grey40.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme//PurpleGrey80/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/-purple-grey80.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme//SimpleOperatorTheme/#kotlin.Boolean#kotlin.Boolean#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/-simple-operator-theme.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.theme//Typography/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.theme/-typography.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen//LoginScreen/#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-login-screen.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen//MainScreen/#androidx.compose.runtime.State[kotlin.Int]#kotlin.Function0[kotlin.Unit]#kotlin.Function0[kotlin.Unit]#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-main-screen.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen//NaviScreen/#com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel.MainViewModel/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-navi-screen.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen//NaviScreenPreview/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-navi-screen-preview.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen//Screen1Preview/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-screen1-preview.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen//Screen2Preview/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-screen2-preview.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen//Screen3Preview/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-screen3-preview.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen//SplashScreen/#kotlin.Function0[kotlin.Unit]/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-splash-screen.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/RouteScreen.LOGIN_SCREEN///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-route-screen/-l-o-g-i-n_-s-c-r-e-e-n/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/RouteScreen.MAIN_SCREEN///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-route-screen/-m-a-i-n_-s-c-r-e-e-n/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/RouteScreen.SPLASH_SCREEN///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-route-screen/-s-p-l-a-s-h_-s-c-r-e-e-n/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/RouteScreen///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-route-screen/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/RouteScreen/valueOf/#kotlin.String/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-route-screen/value-of.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/RouteScreen/values/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view.screen/-route-screen/values.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view/MainActivity///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view/-main-activity/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view/MainActivity/MainActivity/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view/-main-activity/-main-activity.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.view/MainActivity/viewmodel/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.view/-main-activity/viewmodel.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/MainViewModel///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/-main-view-model/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/MainViewModel/MainViewModel/#com.jvckenwood.cabmee.simpleoperator.domain.usecase.FetchCounterUseCase#com.jvckenwood.cabmee.simpleoperator.domain.usecase.ClearCounterUseCase#com.jvckenwood.cabmee.simpleoperator.domain.usecase.IncrementCounterUseCase#com.jvckenwood.cabmee.simpleoperator.domain.entity.StateManager/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/-main-view-model/-main-view-model.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/MainViewModel/clear/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/-main-view-model/clear.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/MainViewModel/counter/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/-main-view-model/counter.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/MainViewModel/inc/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel/-main-view-model/inc.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.utilities////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.utilities/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.utilities/LogFileTree.Companion///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.utilities/-log-file-tree/-companion/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.utilities/LogFileTree.Companion/FILE_SIZE_LIMIT/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.utilities/-log-file-tree/-companion/-f-i-l-e_-s-i-z-e_-l-i-m-i-t.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.utilities/LogFileTree.Companion/MAX_NUM_OF_FILES/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.utilities/-log-file-tree/-companion/-m-a-x_-n-u-m_-o-f_-f-i-l-e-s.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.utilities/LogFileTree///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.utilities/-log-file-tree/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator.utilities/LogFileTree/LogFileTree/#kotlin.String#kotlin.String/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator.utilities/-log-file-tree/-log-file-tree.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator////PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator/MainApplication///PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator/-main-application/index.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator/MainApplication/MainApplication/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator/-main-application/-main-application.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator/MainApplication/context/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator/-main-application/context.html
+$dokka.location:com.jvckenwood.cabmee.simpleoperator/MainApplication/onCreate/#/PointingToDeclaration/app/com.jvckenwood.cabmee.simpleoperator/-main-application/on-create.html
+com.jvckenwood.cabmee.simpleoperator
+com.jvckenwood.cabmee.simpleoperator.data.localdata
+com.jvckenwood.cabmee.simpleoperator.data.repository
+com.jvckenwood.cabmee.simpleoperator.domain.entity
+com.jvckenwood.cabmee.simpleoperator.domain.interfaces
+com.jvckenwood.cabmee.simpleoperator.domain.state
+com.jvckenwood.cabmee.simpleoperator.domain.usecase
+com.jvckenwood.cabmee.simpleoperator.presentation.theme
+com.jvckenwood.cabmee.simpleoperator.presentation.view
+com.jvckenwood.cabmee.simpleoperator.presentation.view.screen
+com.jvckenwood.cabmee.simpleoperator.presentation.viewmodel
+com.jvckenwood.cabmee.simpleoperator.utilities
+

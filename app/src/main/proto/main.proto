@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+option java_package = "com.jvckenwood.cabmee.homeapp";
+option java_multiple_files = true;
+
+message MainData {
+    int64 counter = 1;
+}
