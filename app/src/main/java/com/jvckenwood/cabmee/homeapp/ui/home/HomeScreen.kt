@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -53,7 +54,8 @@ import androidx.core.graphics.drawable.toBitmap
 @Composable
 fun HomeScreen(
     viewModel: MainViewModel,
-    onMessage: (String) -> Unit
+    onMessage: (String) -> Unit,
+    onOpenSettings: () -> Unit
 ) {
     val context = LocalContext.current
     val pm = context.packageManager
@@ -145,39 +147,53 @@ fun HomeScreen(
                 .padding(end = 12.dp, bottom = 12.dp)
         )
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .size(72.dp)
-                .background(Color.Transparent)
-                .clickable(
-                    interactionSource = noRipple,
-                    indication = null
-                ) {
-                    launchHiddenPackage(
-                        context = context,
-                        packageName = viewModel.registerHiddenTap("LT"),
-                        onMessage = onMessage
-                    )
-                }
-        )
+        HiddenCornerButton(
+            alignment = Alignment.TopStart,
+            noRipple = noRipple
+        ) {
+            handleHiddenAction(
+                context = context,
+                action = viewModel.registerHiddenTap("LT"),
+                onMessage = onMessage,
+                onOpenSettings = onOpenSettings
+            )
+        }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .size(72.dp)
-                .background(Color.Transparent)
-                .clickable(
-                    interactionSource = noRipple,
-                    indication = null
-                ) {
-                    launchHiddenPackage(
-                        context = context,
-                        packageName = viewModel.registerHiddenTap("RB"),
-                        onMessage = onMessage
-                    )
-                }
-        )
+        HiddenCornerButton(
+            alignment = Alignment.TopEnd,
+            noRipple = noRipple
+        ) {
+            handleHiddenAction(
+                context = context,
+                action = viewModel.registerHiddenTap("RT"),
+                onMessage = onMessage,
+                onOpenSettings = onOpenSettings
+            )
+        }
+
+        HiddenCornerButton(
+            alignment = Alignment.BottomStart,
+            noRipple = noRipple
+        ) {
+            handleHiddenAction(
+                context = context,
+                action = viewModel.registerHiddenTap("LB"),
+                onMessage = onMessage,
+                onOpenSettings = onOpenSettings
+            )
+        }
+
+        HiddenCornerButton(
+            alignment = Alignment.BottomEnd,
+            noRipple = noRipple
+        ) {
+            handleHiddenAction(
+                context = context,
+                action = viewModel.registerHiddenTap("RB"),
+                onMessage = onMessage,
+                onOpenSettings = onOpenSettings
+            )
+        }
 
         if (showRebootDialog) {
             AlertDialog(
@@ -212,15 +228,48 @@ fun HomeScreen(
     }
 }
 
+@Composable
+private fun BoxScope.HiddenCornerButton(
+    alignment: Alignment,
+    noRipple: MutableInteractionSource,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .align(alignment)
+            .size(72.dp)
+            .background(Color.Transparent)
+            .clickable(
+                interactionSource = noRipple,
+                indication = null,
+                onClick = onClick
+            )
+    )
+}
+
+private fun handleHiddenAction(
+    context: Context,
+    action: HiddenAction?,
+    onMessage: (String) -> Unit,
+    onOpenSettings: () -> Unit
+) {
+    when (action) {
+        is HiddenAction.LaunchPackage -> launchHiddenPackage(
+            context = context,
+            packageName = action.packageName,
+            onMessage = onMessage
+        )
+
+        HiddenAction.OpenSettingsScreen -> onOpenSettings()
+        null -> Unit
+    }
+}
+
 private fun launchHiddenPackage(
     context: Context,
-    packageName: String?,
+    packageName: String,
     onMessage: (String) -> Unit
 ) {
-    if (packageName == null) {
-        return
-    }
-
     val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
     if (launchIntent != null) {
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

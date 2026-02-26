@@ -23,6 +23,11 @@ data class HomeUiState(
     val versionText: String = BuildConfig.VERSION_NAME
 )
 
+sealed interface HiddenAction {
+    data class LaunchPackage(val packageName: String) : HiddenAction
+    data object OpenSettingsScreen : HiddenAction
+}
+
 class MainViewModel(
     application: Application
 ) : AndroidViewModel(application) {
@@ -75,7 +80,7 @@ class MainViewModel(
         }
     }
 
-    fun registerHiddenTap(code: String): String? {
+    fun registerHiddenTap(code: String): HiddenAction? {
         val now = SystemClock.elapsedRealtime()
 
         if (taps.isEmpty() || (now - startMs) > 3000L) {
@@ -84,6 +89,13 @@ class MainViewModel(
         }
 
         taps.add(code)
+
+        if (taps == listOf("LT", "RT", "LB", "RB")) {
+            taps.clear()
+            startMs = 0L
+            return HiddenAction.OpenSettingsScreen
+        }
+
         if (taps.size > 7) {
             taps.clear()
             startMs = 0L
@@ -95,8 +107,14 @@ class MainViewModel(
             taps.clear()
             startMs = 0L
             return when (sequence) {
-                listOf("LT", "LT", "RB", "RB", "LT", "RB", "RB") -> "com.android.settings"
-                listOf("RB", "RB", "LT", "LT", "RB", "LT", "LT") -> "com.cyanogenmod.filemanager"
+                listOf("LT", "LT", "RB", "RB", "LT", "RB", "RB") -> {
+                    HiddenAction.LaunchPackage("com.android.settings")
+                }
+
+                listOf("RB", "RB", "LT", "LT", "RB", "LT", "LT") -> {
+                    HiddenAction.LaunchPackage("com.cyanogenmod.filemanager")
+                }
+
                 else -> null
             }
         }
