@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CabmeeHomeApp</string>
+    <string name="accessibility_service_description">HW Key detection service</string>
+</resources>
