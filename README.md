@@ -16,6 +16,11 @@ CabmeeHomeApp は Android Automotive 向けのホーム画面アプリです。�
   - 7 タップの既定シーケンスで外部アプリを起動
 - **設定画面（SETTINGS）**
   - 戻るアイコンでホームに復帰
+- **自動起動**
+  - `autioStartApplicationIndex`（Nullable）で対象アプリを指定
+  - 初期値は `0`（`com.jvckenwood.taitis.taitiscarapp`）
+  - ホーム画面表示が30秒継続したら対象アプリを起動（未起動時は起動、バックグラウンド時は前面化）
+  - `null` の場合は自動起動しない
 - **テーマ**
   - ライトテーマ: 背景白・文字黒
   - ダークテーマ: 背景ネイビーブルー・文字白

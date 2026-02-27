@@ -31,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ import androidx.core.graphics.drawable.toBitmap
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.AppEntryUiModel
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HiddenAction
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HomeUiState
+import kotlinx.coroutines.delay
 
 @Composable
 fun MainScreen(
@@ -64,6 +66,15 @@ fun MainScreen(
     val config = LocalConfiguration.current
     var showRebootDialog by remember { mutableStateOf(false) }
     val noRipple = remember { MutableInteractionSource() }
+
+    LaunchedEffect(uiState.autoStartPackageName) {
+        val autoStartPackageName = uiState.autoStartPackageName ?: return@LaunchedEffect
+        delay(30_000L)
+        val launched = onLaunchPackage(autoStartPackageName)
+        if (!launched) {
+            onMessage("自動起動できません: $autoStartPackageName")
+        }
+    }
 
     val columns = if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) 5 else 2
 

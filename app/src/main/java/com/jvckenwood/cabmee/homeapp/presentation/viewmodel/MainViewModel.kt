@@ -31,6 +31,7 @@ data class HomeUiState(
     val slots: List<String?> = emptyList(),
     val appEntries: Map<String, AppEntryUiModel> = emptyMap(),
     val canReboot: Boolean = false,
+    val autoStartPackageName: String? = null,
     val versionText: String = BuildConfig.VERSION_NAME
 )
 
@@ -54,10 +55,16 @@ class MainViewModel @Inject constructor(
         "com.android.calculator2"
     )
 
+    // Nullable: null の場合は自動起動しない
+    private val autioStartApplicationIndex: Int? = 0
+
     private val _uiState = MutableStateFlow(
         HomeUiState(
             slots = buildSlots(targetPackageList),
-            canReboot = context.checkSelfPermission(android.Manifest.permission.REBOOT) == PackageManager.PERMISSION_GRANTED
+            canReboot = context.checkSelfPermission(android.Manifest.permission.REBOOT) == PackageManager.PERMISSION_GRANTED,
+            autoStartPackageName = autioStartApplicationIndex
+                ?.takeIf { it in targetPackageList.indices }
+                ?.let { targetPackageList[it] }
         )
     )
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()

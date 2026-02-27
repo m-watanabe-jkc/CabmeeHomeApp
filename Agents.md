@@ -28,6 +28,8 @@
 4. ViewModel の取得は `MainActivity` ではなく `NaviScreen`（`hiltViewModel()`）で行う。
 5. `MainScreen` へ ViewModel を直接渡さず、必要な `uiState` とコールバックのみを渡す。
 6. ダークテーマ時は背景ネイビーブルー・文字色白を維持する。
+7. 自動起動設定 `autioStartApplicationIndex` は Nullable とし、`null` の場合は自動起動を無効化する。
+8. ホーム画面表示が30秒継続した際に自動起動対象を前面化する要件を維持する。
 
 ## 4. レイヤ構成
 
