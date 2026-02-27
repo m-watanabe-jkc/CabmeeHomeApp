@@ -4,6 +4,7 @@ import android.content.Context
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.jvckenwood.cabmee.homeapp.data.localdata.mainDataStore
+import com.jvckenwood.cabmee.homeapp.domain.entity.MainEntity
 import com.jvckenwood.cabmee.homeapp.domain.interfaces.MainRepositoryInterface
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
@@ -22,9 +23,48 @@ class MainRepository @Inject constructor(
         }
     }
 
-    override suspend fun loadCounter(): Result<Long, String> {
-        val data = context.mainDataStore.data
-        val counter = data.first().counter
-        return Ok(counter)
+    override suspend fun loadMainData(): Result<MainEntity, String> {
+        val data = context.mainDataStore.data.first()
+        val pm = context.packageManager
+        val validatedTargets = data.targetPackageListList.map { packageName ->
+            if (packageName.isBlank()) {
+                ""
+            } else {
+                runCatching { pm.getApplicationInfo(packageName, 0) }
+                    .map { packageName }
+                    .getOrElse { "" }
+            }
+        }
+        return Ok(
+            MainEntity(
+                counter = data.counter,
+                autoStartApplicationIndex = data.autoStartApplicationIndex,
+                autoStartApplicationInterval = data.autoStartApplicationInterval,
+                targetPackageList = validatedTargets
+            )
+        )
+    }
+
+    override suspend fun saveAutoStartSettings(
+        autoStartApplicationIndex: Int,
+        autoStartApplicationInterval: Int
+    ): Result<Unit, String> {
+        context.mainDataStore.updateData { currentData ->
+            currentData.toBuilder()
+                .setAutoStartApplicationIndex(autoStartApplicationIndex)
+                .setAutoStartApplicationInterval(autoStartApplicationInterval)
+                .build()
+        }
+        return Ok(Unit)
+    }
+
+    override suspend fun saveTargetPackageList(targetPackageList: List<String>): Result<Unit, String> {
+        context.mainDataStore.updateData { currentData ->
+            currentData.toBuilder()
+                .clearTargetPackageList()
+                .addAllTargetPackageList(targetPackageList)
+                .build()
+        }
+        return Ok(Unit)
     }
 }

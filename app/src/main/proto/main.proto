@@ -5,4 +5,7 @@ option java_multiple_files = true;
 
 message MainData {
     int64 counter = 1;
+    int32 autoStartApplicationIndex = 2;
+    int32 autoStartApplicationInterval = 3;
+    repeated string targetPackageList = 4;
 }

@@ -1,7 +1,6 @@
 package com.jvckenwood.cabmee.homeapp.presentation.view.screen
 
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.os.PowerManager
 import androidx.compose.foundation.Image
@@ -10,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -32,8 +33,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -43,28 +45,87 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.max
+import kotlin.math.min
 import androidx.core.graphics.drawable.toBitmap
+import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.AppEntryUiModel
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HiddenAction
-import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.MainViewModel
+import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HomeUiState
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
-    viewModel: MainViewModel,
-    onMessage: (String) -> Unit,
-    onOpenSettings: () -> Unit
+    uiState: HomeUiState,
+    onLaunchPackage: (String) -> Boolean,
+    onHiddenTap: (String) -> HiddenAction?,
+    onHiddenAction: (HiddenAction?) -> Unit,
+    onMessage: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val pm = context.packageManager
     val config = LocalConfiguration.current
-    val uiState by viewModel.uiState.collectAsState()
     var showRebootDialog by remember { mutableStateOf(false) }
     val noRipple = remember { MutableInteractionSource() }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
+
+    DisposableEffect(lifecycleOwner, uiState.autoStartPackageName, uiState.autoStartIntervalSeconds) {
+        val autoStartPackageName = uiState.autoStartPackageName
+        var autoStartJob: Job? = null
+
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    if (autoStartPackageName != null) {
+                        autoStartJob?.cancel()
+                        autoStartJob = coroutineScope.launch {
+                            delay(uiState.autoStartIntervalSeconds * 1000L)
+                            val launched = onLaunchPackage(autoStartPackageName)
+                            if (!launched) {
+                                onMessage("自動起動できません: $autoStartPackageName")
+                            }
+                        }
+                    }
+                }
+
+                Lifecycle.Event.ON_PAUSE,
+                Lifecycle.Event.ON_STOP,
+                Lifecycle.Event.ON_DESTROY -> {
+                    autoStartJob?.cancel()
+                }
+
+                else -> Unit
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && autoStartPackageName != null) {
+            autoStartJob = coroutineScope.launch {
+                delay(uiState.autoStartIntervalSeconds * 1000L)
+                val launched = onLaunchPackage(autoStartPackageName)
+                if (!launched) {
+                    onMessage("自動起動できません: $autoStartPackageName")
+                }
+            }
+        }
+
+        onDispose {
+            autoStartJob?.cancel()
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     val columns = if (config.orientation == Configuration.ORIENTATION_LANDSCAPE) 5 else 2
 
@@ -91,59 +152,71 @@ fun MainScreen(
             HorizontalDivider(
                 modifier = Modifier.fillMaxWidth(),
                 thickness = 2.dp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(columns),
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                userScrollEnabled = false
-            ) {
-                itemsIndexed(uiState.slots) { _, packageName ->
-                    if (packageName == null) {
-                        EmptySlot()
-                    } else {
-                        val entry = uiState.appEntries[packageName]
-                        if (entry == null) {
-                            EmptySlot()
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val rows = max(1, (uiState.slots.size + columns - 1) / columns)
+                val spacing = if (columns == 2) 4.dp else 8.dp
+                val cellWidth = (maxWidth - spacing * (columns - 1)) / columns
+                val cellHeight = (maxHeight - spacing * (rows - 1)) / rows
+                val baseCell = min(cellWidth, cellHeight)
+                val iconSize = (baseCell * 0.42f).coerceIn(24.dp, 64.dp)
+                val labelFont = (baseCell.value * 0.11f).coerceIn(10f, 14f).sp
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(columns),
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(spacing, Alignment.Top),
+                    horizontalArrangement = Arrangement.spacedBy(spacing, Alignment.Start),
+                    userScrollEnabled = false
+                ) {
+                    itemsIndexed(uiState.slots) { _, packageName ->
+                        if (packageName == null) {
+                            EmptySlot(cellHeight)
                         } else {
-                            AppItemSlot(
-                                icon = entry.icon,
-                                label = entry.label,
-                                onClick = {
-                                    val intent = pm.getLaunchIntentForPackage(packageName)
-                                    if (intent != null) {
-                                        context.startActivity(intent)
-                                    } else {
-                                        onMessage("起動できません: $packageName")
+                            val entry = uiState.appEntries[packageName]
+                            if (entry == null) {
+                                EmptySlot(cellHeight)
+                            } else {
+                                AppItemSlot(
+                                    entry = entry,
+                                    iconSize = iconSize,
+                                    labelFontSize = labelFont,
+                                    cellHeight = cellHeight,
+                                    onClick = {
+                                        val launched = onLaunchPackage(packageName)
+                                        if (!launched) {
+                                            onMessage("起動できません: $packageName")
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        FloatingActionButton(
-            onClick = { showRebootDialog = true },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 28.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.RestartAlt,
-                contentDescription = "Reboot"
-            )
+        if (uiState.canReboot) {
+            FloatingActionButton(
+                onClick = { showRebootDialog = true },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 28.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.RestartAlt,
+                    contentDescription = "Reboot"
+                )
+            }
         }
 
         Text(
             text = "v${uiState.versionText}",
             fontSize = 12.sp,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 12.dp, bottom = 12.dp)
@@ -153,48 +226,28 @@ fun MainScreen(
             alignment = Alignment.TopStart,
             noRipple = noRipple
         ) {
-            handleHiddenAction(
-                context = context,
-                action = viewModel.registerHiddenTap("LT"),
-                onMessage = onMessage,
-                onOpenSettings = onOpenSettings
-            )
+            onHiddenAction(onHiddenTap("LT"))
         }
 
         HiddenCornerButton(
             alignment = Alignment.TopEnd,
             noRipple = noRipple
         ) {
-            handleHiddenAction(
-                context = context,
-                action = viewModel.registerHiddenTap("RT"),
-                onMessage = onMessage,
-                onOpenSettings = onOpenSettings
-            )
+            onHiddenAction(onHiddenTap("RT"))
         }
 
         HiddenCornerButton(
             alignment = Alignment.BottomStart,
             noRipple = noRipple
         ) {
-            handleHiddenAction(
-                context = context,
-                action = viewModel.registerHiddenTap("LB"),
-                onMessage = onMessage,
-                onOpenSettings = onOpenSettings
-            )
+            onHiddenAction(onHiddenTap("LB"))
         }
 
         HiddenCornerButton(
             alignment = Alignment.BottomEnd,
             noRipple = noRipple
         ) {
-            handleHiddenAction(
-                context = context,
-                action = viewModel.registerHiddenTap("RB"),
-                onMessage = onMessage,
-                onOpenSettings = onOpenSettings
-            )
+            onHiddenAction(onHiddenTap("RB"))
         }
 
         if (showRebootDialog) {
@@ -249,63 +302,33 @@ private fun BoxScope.HiddenCornerButton(
     )
 }
 
-private fun handleHiddenAction(
-    context: Context,
-    action: HiddenAction?,
-    onMessage: (String) -> Unit,
-    onOpenSettings: () -> Unit
-) {
-    when (action) {
-        is HiddenAction.LaunchPackage -> launchHiddenPackage(
-            context = context,
-            packageName = action.packageName,
-            onMessage = onMessage
-        )
-
-        HiddenAction.OpenSettingsScreen -> onOpenSettings()
-        null -> Unit
-    }
-}
-
-private fun launchHiddenPackage(
-    context: Context,
-    packageName: String,
-    onMessage: (String) -> Unit
-) {
-    val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
-    if (launchIntent != null) {
-        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(launchIntent)
-    } else {
-        onMessage("起動できません（未インストール/起動不可）: $packageName")
-    }
-}
-
 @Composable
 private fun AppItemSlot(
-    icon: android.graphics.drawable.Drawable,
-    label: String,
+    entry: AppEntryUiModel,
+    iconSize: androidx.compose.ui.unit.Dp,
+    labelFontSize: androidx.compose.ui.unit.TextUnit,
+    cellHeight: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit
 ) {
-    val bmp = remember(icon) { icon.toBitmap().asImageBitmap() }
+    val bmp = remember(entry.icon) { entry.icon.toBitmap().asImageBitmap() }
 
     Column(
         modifier = Modifier
-            .aspectRatio(1f)
+            .requiredHeight(cellHeight)
             .clickable(onClick = onClick)
-            .padding(4.dp),
+            .padding(horizontal = 4.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Image(
             bitmap = bmp,
-            contentDescription = label,
-            modifier = Modifier.size(64.dp)
+            contentDescription = entry.label,
+            modifier = Modifier.size(iconSize)
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = label,
-            fontSize = 12.sp,
+            text = entry.label,
+            fontSize = labelFontSize,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
@@ -315,16 +338,6 @@ private fun AppItemSlot(
 }
 
 @Composable
-private fun EmptySlot() {
-    Box(modifier = Modifier.aspectRatio(1f))
+private fun EmptySlot(cellHeight: androidx.compose.ui.unit.Dp) {
+    Box(modifier = Modifier.requiredHeight(cellHeight))
 }
-
-// @Preview(showBackground = true, apiLevel = 33)
-// @Composable
-// fun Screen2Preview() {
-//    MainScreen(
-//        viewModel = MainViewModel(),
-//        onMessage = {},
-//        onOpenSettings = {}
-//    )
-// }

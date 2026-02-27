@@ -18,20 +18,27 @@ class InitializeUseCase @Inject constructor(
     private val repository: MainRepositoryInterface,
     private val stateMgr: StateManager
 ) {
+    private val defaultTargetPackageList: List<String> = emptyList()
+
     suspend operator fun invoke(): Result<Unit, String> {
         Timber.d("InitializeUseCase invoked")
-        repository.loadCounter()
-            .onSuccess { counter ->
-                stateMgr.updateMainState(
-                    MainState.Success(
-                        MainEntity(
-                            counter = counter
-                        )
-                    )
-                )
+        repository.loadMainData()
+            .onSuccess { loaded ->
+                val normalizedTargets = if (loaded.targetPackageList.isEmpty()) {
+                    defaultTargetPackageList
+                } else {
+                    loaded.targetPackageList
+                }
+
+                val mainEntity = loaded.copy(targetPackageList = normalizedTargets)
+                stateMgr.updateMainState(MainState.Success(mainEntity))
+
+                if (loaded.targetPackageList.isEmpty()) {
+                    repository.saveTargetPackageList(normalizedTargets)
+                }
                 return Ok(Unit)
             }
-            .onFailure { it ->
+            .onFailure {
                 return Err(it)
             }
         return Err("Unknown Error!")
