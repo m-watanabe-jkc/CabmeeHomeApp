@@ -33,6 +33,11 @@ data class AutoStartAppOption(
     val label: String
 )
 
+data class InstalledAppUiModel(
+    val packageName: String,
+    val label: String
+)
+
 data class HomeUiState(
     val slots: List<String?> = emptyList(),
     val appEntries: Map<String, AppEntryUiModel> = emptyMap(),
@@ -84,11 +89,15 @@ class MainViewModel @Inject constructor(
     private val _selectedAutoStartInterval = MutableStateFlow(30)
     val selectedAutoStartInterval: StateFlow<Int> = _selectedAutoStartInterval.asStateFlow()
 
+    private val _installedApps = MutableStateFlow<List<InstalledAppUiModel>>(emptyList())
+    val installedApps: StateFlow<List<InstalledAppUiModel>> = _installedApps.asStateFlow()
+
     private val taps = mutableListOf<String>()
     private var startMs = 0L
 
     init {
         loadAppEntries()
+        loadInstalledApps()
         observeMainState()
     }
 
@@ -167,6 +176,39 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun loadInstalledApps() {
+        val pm = context.packageManager
+        viewModelScope.launch {
+            val apps = runCatching {
+                pm.getInstalledApplications(0)
+                    .asSequence()
+                    .map { appInfo ->
+                        InstalledAppUiModel(
+                            packageName = appInfo.packageName,
+                            label = pm.getApplicationLabel(appInfo).toString()
+                        )
+                    }
+                    .filterNot { app -> isBlacklistedPackage(app.packageName) }
+                    .sortedBy { it.label.lowercase() }
+                    .toList()
+            }.getOrDefault(emptyList())
+
+            _installedApps.value = apps
+        }
+    }
+
+    private fun isBlacklistedPackage(packageName: String): Boolean {
+        return BLACKLIST_PATTERNS.any { pattern -> wildcardMatch(packageName, pattern) }
+    }
+
+    private fun wildcardMatch(value: String, pattern: String): Boolean {
+        val regex = pattern
+            .replace(".", "\\.")
+            .replace("*", ".*")
+            .toRegex()
+        return regex.matches(value)
+    }
+
     fun registerHiddenTap(code: String): HiddenAction? {
         val now = SystemClock.elapsedRealtime()
 
@@ -214,5 +256,10 @@ class MainViewModel @Inject constructor(
         launchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(launchIntent)
         return true
+    }
+
+    companion object {
+        // 例: listOf("com.example.*", "com.android.systemui")
+        private val BLACKLIST_PATTERNS: List<String> = emptyList()
     }
 }

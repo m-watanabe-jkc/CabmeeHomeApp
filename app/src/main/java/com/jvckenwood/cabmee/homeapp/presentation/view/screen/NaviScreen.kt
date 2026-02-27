@@ -36,6 +36,7 @@ fun NaviScreen(vm: MainViewModel = hiltViewModel()) {
     val autoStartAppOptions by vm.autoStartAppOptions.collectAsState()
     val selectedAutoStartAppIndex by vm.selectedAutoStartAppIndex.collectAsState()
     val selectedAutoStartInterval by vm.selectedAutoStartInterval.collectAsState()
+    val installedApps by vm.installedApps.collectAsState()
 
     LaunchedEffect(Unit) {
         vm.initialize()
@@ -78,6 +79,7 @@ fun NaviScreen(vm: MainViewModel = hiltViewModel()) {
                         selectedAutoStartAppIndex = selectedAutoStartAppIndex,
                         autoStartIntervalOptions = vm.autoStartIntervalSecondsOptions,
                         selectedAutoStartInterval = selectedAutoStartInterval,
+                        installedApps = installedApps,
                         onAutoStartAppSelected = { selectedIndex ->
                             vm.updateAutoStartSettings(selectedIndex, selectedAutoStartInterval)
                         },

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -18,6 +20,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +36,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.AutoStartAppOption
+import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.InstalledAppUiModel
+
+private enum class SettingTab(val title: String) {
+    APP_LAUNCH("アプリ起動"),
+    DISPLAY("表示設定")
+}
 
 @Composable
 fun SettingScreen(
@@ -39,14 +49,12 @@ fun SettingScreen(
     selectedAutoStartAppIndex: Int?,
     autoStartIntervalOptions: List<Int>,
     selectedAutoStartInterval: Int,
+    installedApps: List<InstalledAppUiModel>,
     onAutoStartAppSelected: (Int?) -> Unit,
     onAutoStartIntervalSelected: (Int) -> Unit,
     onBack: () -> Unit
 ) {
-    val selectedAppLabel = autoStartAppOptions
-        .firstOrNull { it.index == selectedAutoStartAppIndex }
-        ?.label
-        ?: "無し"
+    var selectedTab by remember { mutableStateOf(SettingTab.APP_LAUNCH) }
 
     Column(
         modifier = Modifier
@@ -78,25 +86,94 @@ fun SettingScreen(
             color = MaterialTheme.colorScheme.onBackground
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        SettingDropdownRow(
-            title = "自動起動アプリ",
-            selectedText = selectedAppLabel,
-            items = autoStartAppOptions,
-            itemLabel = { it.label },
-            onItemSelected = { option -> onAutoStartAppSelected(option.index) }
-        )
+        TabRow(selectedTabIndex = selectedTab.ordinal) {
+            SettingTab.values().forEach { tab ->
+                Tab(
+                    selected = selectedTab == tab,
+                    onClick = { selectedTab = tab },
+                    text = { Text(tab.title) }
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        SettingDropdownRow(
-            title = "自動起動時間",
-            selectedText = "${selectedAutoStartInterval}秒",
-            items = autoStartIntervalOptions,
-            itemLabel = { "${it}秒" },
-            onItemSelected = onAutoStartIntervalSelected
-        )
+        when (selectedTab) {
+            SettingTab.APP_LAUNCH -> AppLaunchTabContent(
+                autoStartAppOptions = autoStartAppOptions,
+                selectedAutoStartAppIndex = selectedAutoStartAppIndex,
+                autoStartIntervalOptions = autoStartIntervalOptions,
+                selectedAutoStartInterval = selectedAutoStartInterval,
+                onAutoStartAppSelected = onAutoStartAppSelected,
+                onAutoStartIntervalSelected = onAutoStartIntervalSelected
+            )
+
+            SettingTab.DISPLAY -> DisplaySettingTabContent(installedApps = installedApps)
+        }
+    }
+}
+
+@Composable
+private fun AppLaunchTabContent(
+    autoStartAppOptions: List<AutoStartAppOption>,
+    selectedAutoStartAppIndex: Int?,
+    autoStartIntervalOptions: List<Int>,
+    selectedAutoStartInterval: Int,
+    onAutoStartAppSelected: (Int?) -> Unit,
+    onAutoStartIntervalSelected: (Int) -> Unit
+) {
+    val selectedAppLabel = autoStartAppOptions
+        .firstOrNull { it.index == selectedAutoStartAppIndex }
+        ?.label
+        ?: "無し"
+
+    SettingDropdownRow(
+        title = "自動起動アプリ",
+        selectedText = selectedAppLabel,
+        items = autoStartAppOptions,
+        itemLabel = { it.label },
+        onItemSelected = { option -> onAutoStartAppSelected(option.index) }
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    SettingDropdownRow(
+        title = "自動起動時間",
+        selectedText = "${selectedAutoStartInterval}秒",
+        items = autoStartIntervalOptions,
+        itemLabel = { "${it}秒" },
+        onItemSelected = onAutoStartIntervalSelected
+    )
+}
+
+@Composable
+private fun DisplaySettingTabContent(installedApps: List<InstalledAppUiModel>) {
+    Text(
+        text = "インストール済みアプリ一覧",
+        fontSize = 16.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.onBackground
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(installedApps) { app ->
+            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                Text(
+                    text = app.label,
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = app.packageName,
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                )
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
+        }
     }
 }
 
@@ -166,6 +243,10 @@ fun Screen3Preview() {
         selectedAutoStartAppIndex = 0,
         autoStartIntervalOptions = listOf(5, 10, 20, 30, 60),
         selectedAutoStartInterval = 30,
+        installedApps = listOf(
+            InstalledAppUiModel("com.example.alpha", "Alpha"),
+            InstalledAppUiModel("com.example.beta", "Beta")
+        ),
         onAutoStartAppSelected = {},
         onAutoStartIntervalSelected = {},
         onBack = {}
