@@ -31,8 +31,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,6 +43,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,7 +56,9 @@ import androidx.core.graphics.drawable.toBitmap
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.AppEntryUiModel
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HiddenAction
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HomeUiState
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
@@ -67,12 +73,53 @@ fun MainScreen(
     var showRebootDialog by remember { mutableStateOf(false) }
     val noRipple = remember { MutableInteractionSource() }
 
-    LaunchedEffect(uiState.autoStartPackageName) {
-        val autoStartPackageName = uiState.autoStartPackageName ?: return@LaunchedEffect
-        delay(30_000L)
-        val launched = onLaunchPackage(autoStartPackageName)
-        if (!launched) {
-            onMessage("自動起動できません: $autoStartPackageName")
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
+
+    DisposableEffect(lifecycleOwner, uiState.autoStartPackageName) {
+        val autoStartPackageName = uiState.autoStartPackageName
+        var autoStartJob: Job? = null
+
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    if (autoStartPackageName != null) {
+                        autoStartJob?.cancel()
+                        autoStartJob = coroutineScope.launch {
+                            delay(30_000L)
+                            val launched = onLaunchPackage(autoStartPackageName)
+                            if (!launched) {
+                                onMessage("自動起動できません: $autoStartPackageName")
+                            }
+                        }
+                    }
+                }
+
+                Lifecycle.Event.ON_PAUSE,
+                Lifecycle.Event.ON_STOP,
+                Lifecycle.Event.ON_DESTROY -> {
+                    autoStartJob?.cancel()
+                }
+
+                else -> Unit
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && autoStartPackageName != null) {
+            autoStartJob = coroutineScope.launch {
+                delay(30_000L)
+                val launched = onLaunchPackage(autoStartPackageName)
+                if (!launched) {
+                    onMessage("自動起動できません: $autoStartPackageName")
+                }
+            }
+        }
+
+        onDispose {
+            autoStartJob?.cancel()
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
