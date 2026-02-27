@@ -5,7 +5,6 @@ import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.onFailure
 import com.github.michaelbull.result.onSuccess
-import com.jvckenwood.cabmee.homeapp.domain.entity.MainEntity
 import com.jvckenwood.cabmee.homeapp.domain.entity.StateManager
 import com.jvckenwood.cabmee.homeapp.domain.interfaces.MainRepositoryInterface
 import com.jvckenwood.cabmee.homeapp.domain.state.MainState
@@ -20,18 +19,12 @@ class InitializeUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(): Result<Unit, String> {
         Timber.d("InitializeUseCase invoked")
-        repository.loadCounter()
-            .onSuccess { counter ->
-                stateMgr.updateMainState(
-                    MainState.Success(
-                        MainEntity(
-                            counter = counter
-                        )
-                    )
-                )
+        repository.loadMainData()
+            .onSuccess { mainEntity ->
+                stateMgr.updateMainState(MainState.Success(mainEntity))
                 return Ok(Unit)
             }
-            .onFailure { it ->
+            .onFailure {
                 return Err(it)
             }
         return Err("Unknown Error!")

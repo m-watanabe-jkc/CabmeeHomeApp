@@ -10,6 +10,7 @@ import com.jvckenwood.cabmee.homeapp.BuildConfig
 import com.jvckenwood.cabmee.homeapp.domain.entity.StateManager
 import com.jvckenwood.cabmee.homeapp.domain.state.MainState
 import com.jvckenwood.cabmee.homeapp.domain.usecase.InitializeUseCase
+import com.jvckenwood.cabmee.homeapp.domain.usecase.UpdateAutoStartAppSettingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,11 +28,17 @@ data class AppEntryUiModel(
     val label: String
 )
 
+data class AutoStartAppOption(
+    val index: Int?,
+    val label: String
+)
+
 data class HomeUiState(
     val slots: List<String?> = emptyList(),
     val appEntries: Map<String, AppEntryUiModel> = emptyMap(),
     val canReboot: Boolean = false,
     val autoStartPackageName: String? = null,
+    val autoStartIntervalSeconds: Int = 30,
     val versionText: String = BuildConfig.VERSION_NAME
 )
 
@@ -44,7 +51,8 @@ sealed interface HiddenAction {
 class MainViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     private val initializeUseCase: InitializeUseCase,
-    stateMgr: StateManager
+    private val updateAutoStartAppSettingUseCase: UpdateAutoStartAppSettingUseCase,
+    private val stateMgr: StateManager
 ) : ViewModel() {
     private val targetPackageList = listOf(
         "com.jvckenwood.taitis.taitiscarapp",
@@ -55,38 +63,62 @@ class MainViewModel @Inject constructor(
         "com.android.calculator2"
     )
 
-    // Nullable: null の場合は自動起動しない
-    private val autioStartApplicationIndex: Int? = 0
+    private val autoStartIntervalOptions = listOf(5, 10, 20, 30, 60)
 
     private val _uiState = MutableStateFlow(
         HomeUiState(
             slots = buildSlots(targetPackageList),
-            canReboot = context.checkSelfPermission(android.Manifest.permission.REBOOT) == PackageManager.PERMISSION_GRANTED,
-            autoStartPackageName = autioStartApplicationIndex
-                ?.takeIf { it in targetPackageList.indices }
-                ?.let { targetPackageList[it] }
+            canReboot = context.checkSelfPermission(android.Manifest.permission.REBOOT) == PackageManager.PERMISSION_GRANTED
         )
     )
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    private val _autoStartAppOptions = MutableStateFlow<List<AutoStartAppOption>>(emptyList())
+    val autoStartAppOptions: StateFlow<List<AutoStartAppOption>> = _autoStartAppOptions.asStateFlow()
+
+    val autoStartIntervalSecondsOptions: List<Int> = autoStartIntervalOptions
+
+    private val _selectedAutoStartAppIndex = MutableStateFlow<Int?>(null)
+    val selectedAutoStartAppIndex: StateFlow<Int?> = _selectedAutoStartAppIndex.asStateFlow()
+
+    private val _selectedAutoStartInterval = MutableStateFlow(30)
+    val selectedAutoStartInterval: StateFlow<Int> = _selectedAutoStartInterval.asStateFlow()
 
     private val taps = mutableListOf<String>()
     private var startMs = 0L
 
     init {
         loadAppEntries()
-        stateMgr.mainState
-            .onEach { new ->
-                if (new is MainState.Success) {
-                    val data = new.mainData
-                    Timber.i("NEW COUNTER: ${data.counter}")
-                }
-            }.launchIn(viewModelScope)
+        observeMainState()
     }
 
     fun initialize() {
         viewModelScope.launch {
             initializeUseCase()
         }
+    }
+
+    private fun observeMainState() {
+        stateMgr.mainState
+            .onEach { new ->
+                if (new is MainState.Success) {
+                    val data = new.mainData
+                    _selectedAutoStartAppIndex.value = data.autoStartApplicationIndex.takeIf { it >= 0 }
+                    _selectedAutoStartInterval.value = data.autoStartApplicationInterval
+                        .takeIf { it in autoStartIntervalOptions }
+                        ?: 30
+                    _uiState.value = _uiState.value.copy(
+                        autoStartPackageName = data.autoStartApplicationIndex
+                            .takeIf { it in targetPackageList.indices }
+                            ?.let { targetPackageList[it] },
+                        autoStartIntervalSeconds = data.autoStartApplicationInterval
+                            .takeIf { it in autoStartIntervalOptions }
+                            ?: 30
+                    )
+                    Timber.i("NEW COUNTER: ${data.counter}")
+                }
+            }
+            .launchIn(viewModelScope)
     }
 
     private fun buildSlots(packages: List<String>): List<String?> {
@@ -109,7 +141,29 @@ class MainViewModel @Inject constructor(
                     }.getOrNull()
                 }
                 .toMap()
+
             _uiState.value = _uiState.value.copy(appEntries = loaded)
+            _autoStartAppOptions.value = buildAutoStartOptions()
+        }
+    }
+
+    private fun buildAutoStartOptions(): List<AutoStartAppOption> {
+        val options = mutableListOf(AutoStartAppOption(index = null, label = "無し"))
+        targetPackageList.forEachIndexed { index, packageName ->
+            val label = uiState.value.appEntries[packageName]?.label ?: packageName
+            options += AutoStartAppOption(index = index, label = label)
+        }
+        return options
+    }
+
+    fun updateAutoStartSettings(autoStartAppIndex: Int?, intervalSeconds: Int) {
+        val normalizedIndex = autoStartAppIndex ?: -1
+        val normalizedInterval = intervalSeconds.takeIf { it in autoStartIntervalOptions } ?: 30
+        viewModelScope.launch {
+            updateAutoStartAppSettingUseCase(
+                autoStartApplicationIndex = normalizedIndex,
+                autoStartApplicationInterval = normalizedInterval
+            )
         }
     }
 

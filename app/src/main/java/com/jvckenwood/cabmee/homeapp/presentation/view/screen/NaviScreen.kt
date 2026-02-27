@@ -33,6 +33,9 @@ fun NaviScreen(vm: MainViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val uiState by vm.uiState.collectAsState()
     val context = LocalContext.current
+    val autoStartAppOptions by vm.autoStartAppOptions.collectAsState()
+    val selectedAutoStartAppIndex by vm.selectedAutoStartAppIndex.collectAsState()
+    val selectedAutoStartInterval by vm.selectedAutoStartInterval.collectAsState()
 
     LaunchedEffect(Unit) {
         vm.initialize()
@@ -71,6 +74,16 @@ fun NaviScreen(vm: MainViewModel = hiltViewModel()) {
                 }
                 composable(route = RouteScreen.SETTING_SCREEN.name) {
                     SettingScreen(
+                        autoStartAppOptions = autoStartAppOptions,
+                        selectedAutoStartAppIndex = selectedAutoStartAppIndex,
+                        autoStartIntervalOptions = vm.autoStartIntervalSecondsOptions,
+                        selectedAutoStartInterval = selectedAutoStartInterval,
+                        onAutoStartAppSelected = { selectedIndex ->
+                            vm.updateAutoStartSettings(selectedIndex, selectedAutoStartInterval)
+                        },
+                        onAutoStartIntervalSelected = { selectedInterval ->
+                            vm.updateAutoStartSettings(selectedAutoStartAppIndex, selectedInterval)
+                        },
                         onBack = {
                             navController.popBackStack()
                         }

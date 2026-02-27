@@ -76,7 +76,7 @@ fun MainScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
 
-    DisposableEffect(lifecycleOwner, uiState.autoStartPackageName) {
+    DisposableEffect(lifecycleOwner, uiState.autoStartPackageName, uiState.autoStartIntervalSeconds) {
         val autoStartPackageName = uiState.autoStartPackageName
         var autoStartJob: Job? = null
 
@@ -86,7 +86,7 @@ fun MainScreen(
                     if (autoStartPackageName != null) {
                         autoStartJob?.cancel()
                         autoStartJob = coroutineScope.launch {
-                            delay(30_000L)
+                            delay(uiState.autoStartIntervalSeconds * 1000L)
                             val launched = onLaunchPackage(autoStartPackageName)
                             if (!launched) {
                                 onMessage("自動起動できません: $autoStartPackageName")
@@ -109,7 +109,7 @@ fun MainScreen(
 
         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED) && autoStartPackageName != null) {
             autoStartJob = coroutineScope.launch {
-                delay(30_000L)
+                delay(uiState.autoStartIntervalSeconds * 1000L)
                 val launched = onLaunchPackage(autoStartPackageName)
                 if (!launched) {
                     onMessage("自動起動できません: $autoStartPackageName")
