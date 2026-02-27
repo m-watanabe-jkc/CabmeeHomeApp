@@ -1,7 +1,6 @@
 package com.jvckenwood.cabmee.homeapp.presentation.view.screen
 
 import android.content.Context
-import android.content.Intent
 import android.content.res.Configuration
 import android.os.PowerManager
 import androidx.compose.foundation.Image
@@ -32,7 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,19 +48,20 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
+import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.AppEntryUiModel
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HiddenAction
-import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.MainViewModel
+import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HomeUiState
 
 @Composable
 fun MainScreen(
-    viewModel: MainViewModel,
-    onMessage: (String) -> Unit,
-    onOpenSettings: () -> Unit
+    uiState: HomeUiState,
+    onLaunchPackage: (String) -> Boolean,
+    onHiddenTap: (String) -> HiddenAction?,
+    onHiddenAction: (HiddenAction?) -> Unit,
+    onMessage: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val pm = context.packageManager
     val config = LocalConfiguration.current
-    val uiState by viewModel.uiState.collectAsState()
     var showRebootDialog by remember { mutableStateOf(false) }
     val noRipple = remember { MutableInteractionSource() }
 
@@ -91,15 +90,15 @@ fun MainScreen(
             HorizontalDivider(
                 modifier = Modifier.fillMaxWidth(),
                 thickness = 2.dp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(16.dp))
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(columns),
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.Top,
+                horizontalArrangement = Arrangement.Start,
                 userScrollEnabled = false
             ) {
                 itemsIndexed(uiState.slots) { _, packageName ->
@@ -111,13 +110,10 @@ fun MainScreen(
                             EmptySlot()
                         } else {
                             AppItemSlot(
-                                icon = entry.icon,
-                                label = entry.label,
+                                entry = entry,
                                 onClick = {
-                                    val intent = pm.getLaunchIntentForPackage(packageName)
-                                    if (intent != null) {
-                                        context.startActivity(intent)
-                                    } else {
+                                    val launched = onLaunchPackage(packageName)
+                                    if (!launched) {
                                         onMessage("起動できません: $packageName")
                                     }
                                 }
@@ -128,22 +124,24 @@ fun MainScreen(
             }
         }
 
-        FloatingActionButton(
-            onClick = { showRebootDialog = true },
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 28.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.RestartAlt,
-                contentDescription = "Reboot"
-            )
+        if (uiState.canReboot) {
+            FloatingActionButton(
+                onClick = { showRebootDialog = true },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 28.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.RestartAlt,
+                    contentDescription = "Reboot"
+                )
+            }
         }
 
         Text(
             text = "v${uiState.versionText}",
             fontSize = 12.sp,
-            color = Color.DarkGray,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 12.dp, bottom = 12.dp)
@@ -153,48 +151,28 @@ fun MainScreen(
             alignment = Alignment.TopStart,
             noRipple = noRipple
         ) {
-            handleHiddenAction(
-                context = context,
-                action = viewModel.registerHiddenTap("LT"),
-                onMessage = onMessage,
-                onOpenSettings = onOpenSettings
-            )
+            onHiddenAction(onHiddenTap("LT"))
         }
 
         HiddenCornerButton(
             alignment = Alignment.TopEnd,
             noRipple = noRipple
         ) {
-            handleHiddenAction(
-                context = context,
-                action = viewModel.registerHiddenTap("RT"),
-                onMessage = onMessage,
-                onOpenSettings = onOpenSettings
-            )
+            onHiddenAction(onHiddenTap("RT"))
         }
 
         HiddenCornerButton(
             alignment = Alignment.BottomStart,
             noRipple = noRipple
         ) {
-            handleHiddenAction(
-                context = context,
-                action = viewModel.registerHiddenTap("LB"),
-                onMessage = onMessage,
-                onOpenSettings = onOpenSettings
-            )
+            onHiddenAction(onHiddenTap("LB"))
         }
 
         HiddenCornerButton(
             alignment = Alignment.BottomEnd,
             noRipple = noRipple
         ) {
-            handleHiddenAction(
-                context = context,
-                action = viewModel.registerHiddenTap("RB"),
-                onMessage = onMessage,
-                onOpenSettings = onOpenSettings
-            )
+            onHiddenAction(onHiddenTap("RB"))
         }
 
         if (showRebootDialog) {
@@ -249,62 +227,29 @@ private fun BoxScope.HiddenCornerButton(
     )
 }
 
-private fun handleHiddenAction(
-    context: Context,
-    action: HiddenAction?,
-    onMessage: (String) -> Unit,
-    onOpenSettings: () -> Unit
-) {
-    when (action) {
-        is HiddenAction.LaunchPackage -> launchHiddenPackage(
-            context = context,
-            packageName = action.packageName,
-            onMessage = onMessage
-        )
-
-        HiddenAction.OpenSettingsScreen -> onOpenSettings()
-        null -> Unit
-    }
-}
-
-private fun launchHiddenPackage(
-    context: Context,
-    packageName: String,
-    onMessage: (String) -> Unit
-) {
-    val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName)
-    if (launchIntent != null) {
-        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(launchIntent)
-    } else {
-        onMessage("起動できません（未インストール/起動不可）: $packageName")
-    }
-}
-
 @Composable
 private fun AppItemSlot(
-    icon: android.graphics.drawable.Drawable,
-    label: String,
+    entry: AppEntryUiModel,
     onClick: () -> Unit
 ) {
-    val bmp = remember(icon) { icon.toBitmap().asImageBitmap() }
+    val bmp = remember(entry.icon) { entry.icon.toBitmap().asImageBitmap() }
 
     Column(
         modifier = Modifier
             .aspectRatio(1f)
             .clickable(onClick = onClick)
-            .padding(4.dp),
+            .padding(end = 16.dp, bottom = 16.dp, top = 4.dp, start = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Image(
             bitmap = bmp,
-            contentDescription = label,
+            contentDescription = entry.label,
             modifier = Modifier.size(64.dp)
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = label,
+            text = entry.label,
             fontSize = 12.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -318,13 +263,3 @@ private fun AppItemSlot(
 private fun EmptySlot() {
     Box(modifier = Modifier.aspectRatio(1f))
 }
-
-// @Preview(showBackground = true, apiLevel = 33)
-// @Composable
-// fun Screen2Preview() {
-//    MainScreen(
-//        viewModel = MainViewModel(),
-//        onMessage = {},
-//        onOpenSettings = {}
-//    )
-// }

@@ -1,45 +1,66 @@
 # CabmeeHomeApp
 
-CabmeeHomeApp は Android Automotive 向けのホームアプリです。Compose でホーム画面と設定画面を描画し、指定アプリの起動や隠し操作による画面遷移を提供します。
+CabmeeHomeApp は Android Automotive 向けのホーム画面アプリです。ホーム UI は 2 x 5（合計 10 スロット）を基準としたランチャー構成で、登録済みアプリ起動・隠し操作・設定画面遷移を提供します。
 
-## コード構成（現状分析）
+## 主要機能
 
-### エントリーポイント
-- `MainActivity` はホームアプリとしての Activity 初期化と、画面ルート（HOME / SETTINGS）の切り替えだけを担当します。
-- 主な役割:
-  - 戻るボタンの無効化（ホーム用途）
-  - `HomeScreen` / `SettingScreen` の出し分け
-  - Toast 表示の受け口
+- **ホーム画面（APPLICATIONS）**
+  - 横画面は 5 列、縦画面は 2 列で表示
+  - アプリスロットは最大 10 枠（不足分は空スロット）
+  - アイコンは **上詰め・左詰め** で配置
+- **再起動ボタン**
+  - 画面下中央に FAB を表示
+  - `android.permission.REBOOT` が許可されていない場合は非表示
+- **隠しタップ操作（四隅）**
+  - `LT -> RT -> LB -> RB`（3 秒以内）で設定画面を開く
+  - 7 タップの既定シーケンスで外部アプリを起動
+- **設定画面（SETTINGS）**
+  - 戻るアイコンでホームに復帰
+- **テーマ**
+  - ライトテーマ: 背景白・文字黒
+  - ダークテーマ: 背景ネイビーブルー・文字白
 
-### Screen 層
-- `ui/home/HomeScreen.kt`
-  - タイトル、アプリグリッド、リブート FAB、バージョン表示を描画
-  - 隠しボタン（LT/RT/LB/RB）を配置
-  - 隠しシーケンスの結果に応じたアプリ起動 / 設定画面遷移を実行
-- `ui/home/SettingScreen.kt`
-  - 左詰めタイトル `SETTINGS` と水平区切り線を描画
-  - タイトル左の ← アイコン押下でホーム画面へ復帰
+## 画面・状態管理の構成
 
-### ViewModel 層
-- `ui/home/MainViewModel.kt`
-  - ホーム画面の表示データ（10スロット、ラベル、アイコン、バージョン）を管理
-  - 隠し操作シーケンスを 3 秒以内で判定
-    - `LT -> RT -> LB -> RB` でアプリ内設定画面へ遷移
-    - 既存の 7 タップシーケンスで外部アプリ起動
+### Presentation
 
-### そのほか
-- `HardwareKeyDetectionService.kt` はハードウェアキー関連のサービス実装
-- `ui/theme/*` は Compose テーマ定義
+- `MainActivity`
+  - HOME アプリとして起動
+  - 戻るキーを無効化
+  - Compose ルートとして `NaviScreen` を表示
+- `NaviScreen`
+  - `hiltViewModel()` で `MainViewModel` を取得
+  - Navigation（MAIN / SETTING）を管理
+  - `MainScreen` には ViewModel 自体ではなく、必要な状態とイベントハンドラのみ渡す
+- `MainScreen`
+  - `HomeUiState` の描画
+  - アイコングリッド、再起動 FAB、バージョン表示、隠しコーナーボタンを管理
+- `SettingScreen`
+  - 設定見出しと戻る操作を提供
 
-## 画面仕様（要点）
-- 縦画面: 2 列、横画面: 5 列
-- 常に 10 スロット表示（不足分は空スロット）
-- 隠しボタンを四隅に配置
-- 3 秒以内の `LT -> RT -> LB -> RB` で設定画面に遷移
-- 設定画面は ← アイコンでホームに戻る
+### Domain / Data
 
-## ビルド・チェック
+- `InitializeUseCase`
+  - 起動時初期化（DataStore からカウンター読み込み）
+- `StateManager`
+  - `MainState` を StateFlow で保持
+- `MainRepository`
+  - Proto DataStore を通じてカウンターを保存・読み込み
+
+## 技術スタック
+
+- Kotlin
+- Jetpack Compose
+- Hilt (Dagger)
+- Navigation Compose
+- Proto DataStore
+- Timber
+
+## ビルド / テスト
+
 ```bash
 ./gradlew :app:assembleDebug
-./gradlew test
+./gradlew :app:testDebugUnitTest
 ```
+
+> 実機・CI で Android SDK が必要です。ローカル実行時は `local.properties` または `ANDROID_HOME` を設定してください。

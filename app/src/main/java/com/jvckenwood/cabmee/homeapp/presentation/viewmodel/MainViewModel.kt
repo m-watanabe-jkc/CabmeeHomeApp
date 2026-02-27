@@ -1,11 +1,11 @@
 package com.jvckenwood.cabmee.homeapp.presentation.viewmodel
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.michaelbull.result.onSuccess
 import com.jvckenwood.cabmee.homeapp.BuildConfig
 import com.jvckenwood.cabmee.homeapp.domain.entity.StateManager
 import com.jvckenwood.cabmee.homeapp.domain.state.MainState
@@ -30,6 +30,7 @@ data class AppEntryUiModel(
 data class HomeUiState(
     val slots: List<String?> = emptyList(),
     val appEntries: Map<String, AppEntryUiModel> = emptyMap(),
+    val canReboot: Boolean = false,
     val versionText: String = BuildConfig.VERSION_NAME
 )
 
@@ -44,9 +45,6 @@ class MainViewModel @Inject constructor(
     private val initializeUseCase: InitializeUseCase,
     stateMgr: StateManager
 ) : ViewModel() {
-    val counter: StateFlow<Long> get() = _counter
-    private val _counter = MutableStateFlow(0L)
-
     private val targetPackageList = listOf(
         "com.jvckenwood.taitis.taitiscarapp",
         "com.ubercab.driver",
@@ -58,7 +56,8 @@ class MainViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         HomeUiState(
-            slots = buildSlots(targetPackageList)
+            slots = buildSlots(targetPackageList),
+            canReboot = context.checkSelfPermission(android.Manifest.permission.REBOOT) == PackageManager.PERMISSION_GRANTED
         )
     )
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -71,22 +70,16 @@ class MainViewModel @Inject constructor(
         stateMgr.mainState
             .onEach { new ->
                 if (new is MainState.Success) {
-                    val data = (new as MainState.Success).mainData
-                    _counter.value = data.counter
+                    val data = new.mainData
                     Timber.i("NEW COUNTER: ${data.counter}")
                 }
             }.launchIn(viewModelScope)
     }
 
-    fun initialize(): Boolean {
-        var result: Boolean = false
+    fun initialize() {
         viewModelScope.launch {
-            initializeUseCase().onSuccess {
-                result = true
-                return@launch
-            }
+            initializeUseCase()
         }
-        return result
     }
 
     private fun buildSlots(packages: List<String>): List<String?> {
@@ -153,5 +146,12 @@ class MainViewModel @Inject constructor(
         }
 
         return null
+    }
+
+    fun launchPackage(packageName: String): Boolean {
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName) ?: return false
+        launchIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(launchIntent)
+        return true
     }
 }
