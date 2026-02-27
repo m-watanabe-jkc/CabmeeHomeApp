@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -157,11 +158,11 @@ fun MainScreen(
 
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 val rows = max(1, (uiState.slots.size + columns - 1) / columns)
-                val spacing = 8.dp
+                val spacing = if (columns == 2) 4.dp else 8.dp
                 val cellWidth = (maxWidth - spacing * (columns - 1)) / columns
                 val cellHeight = (maxHeight - spacing * (rows - 1)) / rows
                 val baseCell = min(cellWidth, cellHeight)
-                val iconSize = (baseCell * 0.56f).coerceIn(32.dp, 72.dp)
+                val iconSize = (baseCell * 0.42f).coerceIn(24.dp, 64.dp)
                 val labelFont = (baseCell.value * 0.11f).coerceIn(10f, 14f).sp
 
                 LazyVerticalGrid(
@@ -173,16 +174,17 @@ fun MainScreen(
                 ) {
                     itemsIndexed(uiState.slots) { _, packageName ->
                         if (packageName == null) {
-                            EmptySlot()
+                            EmptySlot(cellHeight)
                         } else {
                             val entry = uiState.appEntries[packageName]
                             if (entry == null) {
-                                EmptySlot()
+                                EmptySlot(cellHeight)
                             } else {
                                 AppItemSlot(
                                     entry = entry,
                                     iconSize = iconSize,
                                     labelFontSize = labelFont,
+                                    cellHeight = cellHeight,
                                     onClick = {
                                         val launched = onLaunchPackage(packageName)
                                         if (!launched) {
@@ -305,15 +307,16 @@ private fun AppItemSlot(
     entry: AppEntryUiModel,
     iconSize: androidx.compose.ui.unit.Dp,
     labelFontSize: androidx.compose.ui.unit.TextUnit,
+    cellHeight: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit
 ) {
     val bmp = remember(entry.icon) { entry.icon.toBitmap().asImageBitmap() }
 
     Column(
         modifier = Modifier
-            .aspectRatio(1f)
+            .requiredHeight(cellHeight)
             .clickable(onClick = onClick)
-            .padding(4.dp),
+            .padding(horizontal = 4.dp, vertical = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -335,6 +338,6 @@ private fun AppItemSlot(
 }
 
 @Composable
-private fun EmptySlot() {
-    Box(modifier = Modifier.aspectRatio(1f))
+private fun EmptySlot(cellHeight: androidx.compose.ui.unit.Dp) {
+    Box(modifier = Modifier.requiredHeight(cellHeight))
 }
