@@ -25,7 +25,28 @@ class UpdateTargetPackageUseCase @Inject constructor(
                     is MainState.Error -> current.mainData
                     is MainState.Init -> current.mainData
                 }
+
+                val currentAutoStartIndex = base.autoStartApplicationIndex
+                val isCurrentAutoStartStillValid =
+                    currentAutoStartIndex in targetPackageList.indices &&
+                        targetPackageList[currentAutoStartIndex].isNotBlank()
+
+                val nextAutoStartIndex = if (isCurrentAutoStartStillValid) {
+                    currentAutoStartIndex
+                } else {
+                    -1
+                }
+
+                if (!isCurrentAutoStartStillValid && currentAutoStartIndex >= 0) {
+                    repository.saveAutoStartSettings(
+                        autoStartApplicationIndex = -1,
+                        autoStartApplicationInterval = base.autoStartApplicationInterval
+                    )
+                }
+
                 val updated = base.copy(targetPackageList = targetPackageList)
+                    .copy(autoStartApplicationIndex = nextAutoStartIndex)
+
                 stateMgr.updateMainState(MainState.Success(updated))
                 return Ok(Unit)
             }
