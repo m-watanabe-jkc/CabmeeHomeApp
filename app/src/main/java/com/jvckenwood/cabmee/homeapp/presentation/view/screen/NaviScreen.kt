@@ -38,6 +38,7 @@ fun NaviScreen(vm: MainViewModel = hiltViewModel()) {
     val selectedAutoStartInterval by vm.selectedAutoStartInterval.collectAsState()
     val installedApps by vm.installedApps.collectAsState()
     val targetPackageSelections by vm.targetPackageSelections.collectAsState()
+    val viewingMonitoringMode by vm.viewingMonitoringMode.collectAsState()
 
     LaunchedEffect(Unit) {
         vm.initialize()
@@ -91,6 +92,10 @@ fun NaviScreen(vm: MainViewModel = hiltViewModel()) {
                         },
                         onAutoStartIntervalSelected = { selectedInterval ->
                             vm.updateAutoStartSettings(selectedAutoStartAppIndex, selectedInterval)
+                        },
+                        viewingMonitoringMode = viewingMonitoringMode,
+                        onViewingMonitoringModeChanged = { enabled ->
+                            vm.updateViewingMonitoringMode(enabled)
                         },
                         onBack = {
                             navController.popBackStack()

@@ -35,12 +35,15 @@ class MainRepository @Inject constructor(
                     .getOrElse { "" }
             }
         }
+
         return Ok(
             MainEntity(
                 counter = data.counter,
                 autoStartApplicationIndex = data.autoStartApplicationIndex,
                 autoStartApplicationInterval = data.autoStartApplicationInterval,
-                targetPackageList = validatedTargets
+                targetPackageList = validatedTargets,
+                viewingRestrictionsList = data.viewingRestrictionsListList,
+                viewingMonitoringMode = data.viewingMonitoringMode
             )
         )
     }
@@ -63,6 +66,20 @@ class MainRepository @Inject constructor(
             currentData.toBuilder()
                 .clearTargetPackageList()
                 .addAllTargetPackageList(targetPackageList)
+                .build()
+        }
+        return Ok(Unit)
+    }
+
+    override suspend fun saveViewingMonitoringSettings(
+        viewingRestrictionsList: List<String>,
+        viewingMonitoringMode: Boolean
+    ): Result<Unit, String> {
+        context.mainDataStore.updateData { currentData ->
+            currentData.toBuilder()
+                .clearViewingRestrictionsList()
+                .addAllViewingRestrictionsList(viewingRestrictionsList)
+                .setViewingMonitoringMode(viewingMonitoringMode)
                 .build()
         }
         return Ok(Unit)

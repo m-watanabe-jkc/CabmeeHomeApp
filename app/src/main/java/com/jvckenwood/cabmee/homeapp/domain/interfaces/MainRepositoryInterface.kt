@@ -12,4 +12,8 @@ interface MainRepositoryInterface {
     ): Result<Unit, String>
 
     suspend fun saveTargetPackageList(targetPackageList: List<String>): Result<Unit, String>
+    suspend fun saveViewingMonitoringSettings(
+        viewingRestrictionsList: List<String>,
+        viewingMonitoringMode: Boolean
+    ): Result<Unit, String>
 }

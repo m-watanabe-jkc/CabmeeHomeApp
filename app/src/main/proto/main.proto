@@ -8,4 +8,6 @@ message MainData {
     int32 autoStartApplicationIndex = 2;
     int32 autoStartApplicationInterval = 3;
     repeated string targetPackageList = 4;
+    repeated string viewingRestrictionsList = 5;
+    bool viewingMonitoringMode = 6;
 }

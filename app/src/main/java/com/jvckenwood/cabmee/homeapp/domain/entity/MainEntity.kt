@@ -4,5 +4,7 @@ data class MainEntity(
     var counter: Long = 0,
     var autoStartApplicationIndex: Int = -1,
     var autoStartApplicationInterval: Int = 30,
-    var targetPackageList: List<String> = emptyList()
+    var targetPackageList: List<String> = emptyList(),
+    var viewingRestrictionsList: List<String> = emptyList(),
+    var viewingMonitoringMode: Boolean = false
 )

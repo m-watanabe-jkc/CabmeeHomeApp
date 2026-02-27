@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,7 +45,8 @@ import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.InstalledAppUiModel
 
 private enum class SettingTab(val title: String) {
     APP_LAUNCH("アプリ起動"),
-    DISPLAY("表示設定")
+    DISPLAY("表示設定"),
+    VIEWING_RESTRICTION("表示制限")
 }
 
 @Composable
@@ -59,6 +61,8 @@ fun SettingScreen(
     onTargetPackageSlotSelected: (String, Int?) -> Unit,
     onAutoStartAppSelected: (Int?) -> Unit,
     onAutoStartIntervalSelected: (Int) -> Unit,
+    viewingMonitoringMode: Boolean,
+    onViewingMonitoringModeChanged: (Boolean) -> Unit,
     onBack: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(SettingTab.APP_LAUNCH) }
@@ -122,6 +126,11 @@ fun SettingScreen(
                 targetPackageSelections = targetPackageSelections,
                 slotOptionsProvider = slotOptionsProvider,
                 onTargetPackageSlotSelected = onTargetPackageSlotSelected
+            )
+
+            SettingTab.VIEWING_RESTRICTION -> ViewingRestrictionTabContent(
+                viewingMonitoringMode = viewingMonitoringMode,
+                onViewingMonitoringModeChanged = onViewingMonitoringModeChanged
             )
         }
     }
@@ -202,6 +211,30 @@ private fun DisplaySettingTabContent(
 
             HorizontalDivider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
         }
+    }
+}
+
+
+@Composable
+private fun ViewingRestrictionTabContent(
+    viewingMonitoringMode: Boolean,
+    onViewingMonitoringModeChanged: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "表示制限 ON/OFF",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Switch(
+            checked = viewingMonitoringMode,
+            onCheckedChange = onViewingMonitoringModeChanged
+        )
     }
 }
 
@@ -321,6 +354,8 @@ fun Screen3Preview() {
         onTargetPackageSlotSelected = { _, _ -> },
         onAutoStartAppSelected = {},
         onAutoStartIntervalSelected = {},
+        viewingMonitoringMode = false,
+        onViewingMonitoringModeChanged = {},
         onBack = {}
     )
 }

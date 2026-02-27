@@ -30,7 +30,11 @@ class InitializeUseCase @Inject constructor(
                     loaded.targetPackageList
                 }
 
-                val mainEntity = loaded.copy(targetPackageList = normalizedTargets)
+                val mainEntity = loaded.copy(
+                    targetPackageList = normalizedTargets,
+                    viewingRestrictionsList = loaded.viewingRestrictionsList.ifEmpty { emptyList() },
+                    viewingMonitoringMode = loaded.viewingMonitoringMode
+                )
                 stateMgr.updateMainState(MainState.Success(mainEntity))
 
                 if (loaded.targetPackageList.isEmpty()) {
