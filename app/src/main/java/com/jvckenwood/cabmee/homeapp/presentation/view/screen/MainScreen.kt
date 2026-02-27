@@ -9,6 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -52,6 +53,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.max
+import kotlin.math.min
 import androidx.core.graphics.drawable.toBitmap
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.AppEntryUiModel
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.HiddenAction
@@ -152,30 +155,42 @@ fun MainScreen(
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(columns),
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
-                horizontalArrangement = Arrangement.Start,
-                userScrollEnabled = false
-            ) {
-                itemsIndexed(uiState.slots) { _, packageName ->
-                    if (packageName == null) {
-                        EmptySlot()
-                    } else {
-                        val entry = uiState.appEntries[packageName]
-                        if (entry == null) {
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val rows = max(1, (uiState.slots.size + columns - 1) / columns)
+                val spacing = 8.dp
+                val cellWidth = (maxWidth - spacing * (columns - 1)) / columns
+                val cellHeight = (maxHeight - spacing * (rows - 1)) / rows
+                val baseCell = min(cellWidth, cellHeight)
+                val iconSize = (baseCell * 0.56f).coerceIn(32.dp, 72.dp)
+                val labelFont = (baseCell.value * 0.11f).coerceIn(10f, 14f).sp
+
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(columns),
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(spacing, Alignment.Top),
+                    horizontalArrangement = Arrangement.spacedBy(spacing, Alignment.Start),
+                    userScrollEnabled = false
+                ) {
+                    itemsIndexed(uiState.slots) { _, packageName ->
+                        if (packageName == null) {
                             EmptySlot()
                         } else {
-                            AppItemSlot(
-                                entry = entry,
-                                onClick = {
-                                    val launched = onLaunchPackage(packageName)
-                                    if (!launched) {
-                                        onMessage("起動できません: $packageName")
+                            val entry = uiState.appEntries[packageName]
+                            if (entry == null) {
+                                EmptySlot()
+                            } else {
+                                AppItemSlot(
+                                    entry = entry,
+                                    iconSize = iconSize,
+                                    labelFontSize = labelFont,
+                                    onClick = {
+                                        val launched = onLaunchPackage(packageName)
+                                        if (!launched) {
+                                            onMessage("起動できません: $packageName")
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
@@ -288,6 +303,8 @@ private fun BoxScope.HiddenCornerButton(
 @Composable
 private fun AppItemSlot(
     entry: AppEntryUiModel,
+    iconSize: androidx.compose.ui.unit.Dp,
+    labelFontSize: androidx.compose.ui.unit.TextUnit,
     onClick: () -> Unit
 ) {
     val bmp = remember(entry.icon) { entry.icon.toBitmap().asImageBitmap() }
@@ -296,19 +313,19 @@ private fun AppItemSlot(
         modifier = Modifier
             .aspectRatio(1f)
             .clickable(onClick = onClick)
-            .padding(end = 16.dp, bottom = 16.dp, top = 4.dp, start = 4.dp),
+            .padding(4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Image(
             bitmap = bmp,
             contentDescription = entry.label,
-            modifier = Modifier.size(64.dp)
+            modifier = Modifier.size(iconSize)
         )
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = entry.label,
-            fontSize = 12.sp,
+            fontSize = labelFontSize,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
