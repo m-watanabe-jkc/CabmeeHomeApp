@@ -2,6 +2,7 @@ package com.jvckenwood.cabmee.homeapp.presentation.view.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,11 +32,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.drawable.toBitmap
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.AutoStartAppOption
 import com.jvckenwood.cabmee.homeapp.presentation.viewmodel.InstalledAppUiModel
 
@@ -163,38 +167,39 @@ private fun DisplaySettingTabContent(
     slotOptionsProvider: (String) -> List<Int?>,
     onTargetPackageSlotSelected: (String, Int?) -> Unit
 ) {
-    Text(
-        text = "インストール済みアプリ一覧",
-        fontSize = 16.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.onBackground
-    )
-    Spacer(modifier = Modifier.height(8.dp))
-
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(installedApps) { app ->
             val selectedSlot = targetPackageSelections[app.packageName]
             val slotOptions = slotOptionsProvider(app.packageName)
-            Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+            val iconBitmap = remember(app.icon) { app.icon.toBitmap().asImageBitmap() }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    bitmap = iconBitmap,
+                    contentDescription = app.label,
+                    modifier = Modifier.size(36.dp)
+                )
+                Spacer(modifier = Modifier.size(10.dp))
                 Text(
                     text = app.label,
                     fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
                 )
-                Text(
-                    text = app.packageName,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                SettingDropdownRow(
-                    title = "表示位置",
+
+                SimpleDropdownRow(
                     selectedText = selectedSlot?.toString() ?: "",
                     items = slotOptions,
                     itemLabel = { it?.toString() ?: "" },
                     onItemSelected = { onTargetPackageSlotSelected(app.packageName, it) }
                 )
             }
+
             HorizontalDivider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
         }
     }
@@ -255,6 +260,50 @@ private fun <T> SettingDropdownRow(
     }
 }
 
+
+@Composable
+private fun <T> SimpleDropdownRow(
+    selectedText: String,
+    items: List<T>,
+    itemLabel: (T) -> String,
+    onItemSelected: (T) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier
+            .clickable { expanded = true }
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = selectedText,
+            fontSize = 15.sp,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Icon(
+            imageVector = Icons.Default.ArrowDropDown,
+            contentDescription = null
+        )
+    }
+
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false }
+    ) {
+        items.forEach { item ->
+            DropdownMenuItem(
+                text = { Text(itemLabel(item)) },
+                onClick = {
+                    onItemSelected(item)
+                    expanded = false
+                }
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true, apiLevel = 33)
 @Composable
 fun Screen3Preview() {
@@ -266,10 +315,7 @@ fun Screen3Preview() {
         selectedAutoStartAppIndex = 0,
         autoStartIntervalOptions = listOf(5, 10, 20, 30, 60),
         selectedAutoStartInterval = 30,
-        installedApps = listOf(
-            InstalledAppUiModel("com.example.alpha", "Alpha"),
-            InstalledAppUiModel("com.example.beta", "Beta")
-        ),
+        installedApps = emptyList(),
         targetPackageSelections = mapOf("com.example.alpha" to 1),
         slotOptionsProvider = { listOf(null, 1, 2, 3) },
         onTargetPackageSlotSelected = { _, _ -> },

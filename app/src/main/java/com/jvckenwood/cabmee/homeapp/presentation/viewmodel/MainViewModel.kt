@@ -36,7 +36,8 @@ data class AutoStartAppOption(
 
 data class InstalledAppUiModel(
     val packageName: String,
-    val label: String
+    val label: String,
+    val icon: Drawable
 )
 
 data class HomeUiState(
@@ -237,7 +238,8 @@ class MainViewModel @Inject constructor(
                     .map { appInfo ->
                         InstalledAppUiModel(
                             packageName = appInfo.packageName,
-                            label = pm.getApplicationLabel(appInfo).toString()
+                            label = pm.getApplicationLabel(appInfo).toString(),
+                            icon = pm.getApplicationIcon(appInfo)
                         )
                     }
                     .filterNot { app -> isBlacklistedPackage(app.packageName) }

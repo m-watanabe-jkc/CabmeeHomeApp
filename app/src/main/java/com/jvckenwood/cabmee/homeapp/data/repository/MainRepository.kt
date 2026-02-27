@@ -25,12 +25,22 @@ class MainRepository @Inject constructor(
 
     override suspend fun loadMainData(): Result<MainEntity, String> {
         val data = context.mainDataStore.data.first()
+        val pm = context.packageManager
+        val validatedTargets = data.targetPackageListList.map { packageName ->
+            if (packageName.isBlank()) {
+                ""
+            } else {
+                runCatching { pm.getApplicationInfo(packageName, 0) }
+                    .map { packageName }
+                    .getOrElse { "" }
+            }
+        }
         return Ok(
             MainEntity(
                 counter = data.counter,
                 autoStartApplicationIndex = data.autoStartApplicationIndex,
                 autoStartApplicationInterval = data.autoStartApplicationInterval,
-                targetPackageList = data.targetPackageListList
+                targetPackageList = validatedTargets
             )
         )
     }

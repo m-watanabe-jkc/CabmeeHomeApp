@@ -18,14 +18,7 @@ class InitializeUseCase @Inject constructor(
     private val repository: MainRepositoryInterface,
     private val stateMgr: StateManager
 ) {
-    private val defaultTargetPackageList = listOf(
-        "com.jvckenwood.taitis.taitiscarapp",
-        "com.ubercab.driver",
-        "com.jvckenwood.taitis.cabmeekeyboard",
-        "com.jvckenwood.taitis.carappupdater",
-        "com.jvckenwood.carappupdater",
-        "com.android.calculator2"
-    )
+    private val defaultTargetPackageList: List<String> = emptyList()
 
     suspend operator fun invoke(): Result<Unit, String> {
         Timber.d("InitializeUseCase invoked")
