@@ -50,6 +50,9 @@ fun SettingScreen(
     autoStartIntervalOptions: List<Int>,
     selectedAutoStartInterval: Int,
     installedApps: List<InstalledAppUiModel>,
+    targetPackageSelections: Map<String, Int?>,
+    slotOptionsProvider: (String) -> List<Int?>,
+    onTargetPackageSlotSelected: (String, Int?) -> Unit,
     onAutoStartAppSelected: (Int?) -> Unit,
     onAutoStartIntervalSelected: (Int) -> Unit,
     onBack: () -> Unit
@@ -110,7 +113,12 @@ fun SettingScreen(
                 onAutoStartIntervalSelected = onAutoStartIntervalSelected
             )
 
-            SettingTab.DISPLAY -> DisplaySettingTabContent(installedApps = installedApps)
+            SettingTab.DISPLAY -> DisplaySettingTabContent(
+                installedApps = installedApps,
+                targetPackageSelections = targetPackageSelections,
+                slotOptionsProvider = slotOptionsProvider,
+                onTargetPackageSlotSelected = onTargetPackageSlotSelected
+            )
         }
     }
 }
@@ -149,7 +157,12 @@ private fun AppLaunchTabContent(
 }
 
 @Composable
-private fun DisplaySettingTabContent(installedApps: List<InstalledAppUiModel>) {
+private fun DisplaySettingTabContent(
+    installedApps: List<InstalledAppUiModel>,
+    targetPackageSelections: Map<String, Int?>,
+    slotOptionsProvider: (String) -> List<Int?>,
+    onTargetPackageSlotSelected: (String, Int?) -> Unit
+) {
     Text(
         text = "インストール済みアプリ一覧",
         fontSize = 16.sp,
@@ -160,6 +173,8 @@ private fun DisplaySettingTabContent(installedApps: List<InstalledAppUiModel>) {
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(installedApps) { app ->
+            val selectedSlot = targetPackageSelections[app.packageName]
+            val slotOptions = slotOptionsProvider(app.packageName)
             Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                 Text(
                     text = app.label,
@@ -170,6 +185,14 @@ private fun DisplaySettingTabContent(installedApps: List<InstalledAppUiModel>) {
                     text = app.packageName,
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                SettingDropdownRow(
+                    title = "表示位置",
+                    selectedText = selectedSlot?.toString() ?: "",
+                    items = slotOptions,
+                    itemLabel = { it?.toString() ?: "" },
+                    onItemSelected = { onTargetPackageSlotSelected(app.packageName, it) }
                 )
             }
             HorizontalDivider(color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f))
@@ -247,6 +270,9 @@ fun Screen3Preview() {
             InstalledAppUiModel("com.example.alpha", "Alpha"),
             InstalledAppUiModel("com.example.beta", "Beta")
         ),
+        targetPackageSelections = mapOf("com.example.alpha" to 1),
+        slotOptionsProvider = { listOf(null, 1, 2, 3) },
+        onTargetPackageSlotSelected = { _, _ -> },
         onAutoStartAppSelected = {},
         onAutoStartIntervalSelected = {},
         onBack = {}

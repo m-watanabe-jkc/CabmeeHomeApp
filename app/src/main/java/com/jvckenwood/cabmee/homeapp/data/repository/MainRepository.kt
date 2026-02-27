@@ -29,7 +29,8 @@ class MainRepository @Inject constructor(
             MainEntity(
                 counter = data.counter,
                 autoStartApplicationIndex = data.autoStartApplicationIndex,
-                autoStartApplicationInterval = data.autoStartApplicationInterval
+                autoStartApplicationInterval = data.autoStartApplicationInterval,
+                targetPackageList = data.targetPackageListList
             )
         )
     }
@@ -42,6 +43,16 @@ class MainRepository @Inject constructor(
             currentData.toBuilder()
                 .setAutoStartApplicationIndex(autoStartApplicationIndex)
                 .setAutoStartApplicationInterval(autoStartApplicationInterval)
+                .build()
+        }
+        return Ok(Unit)
+    }
+
+    override suspend fun saveTargetPackageList(targetPackageList: List<String>): Result<Unit, String> {
+        context.mainDataStore.updateData { currentData ->
+            currentData.toBuilder()
+                .clearTargetPackageList()
+                .addAllTargetPackageList(targetPackageList)
                 .build()
         }
         return Ok(Unit)

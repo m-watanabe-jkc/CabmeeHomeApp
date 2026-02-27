@@ -11,6 +11,7 @@ import com.jvckenwood.cabmee.homeapp.domain.entity.StateManager
 import com.jvckenwood.cabmee.homeapp.domain.state.MainState
 import com.jvckenwood.cabmee.homeapp.domain.usecase.InitializeUseCase
 import com.jvckenwood.cabmee.homeapp.domain.usecase.UpdateAutoStartAppSettingUseCase
+import com.jvckenwood.cabmee.homeapp.domain.usecase.UpdateTargetPackageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,22 +58,14 @@ class MainViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     private val initializeUseCase: InitializeUseCase,
     private val updateAutoStartAppSettingUseCase: UpdateAutoStartAppSettingUseCase,
+    private val updateTargetPackageUseCase: UpdateTargetPackageUseCase,
     private val stateMgr: StateManager
 ) : ViewModel() {
-    private val targetPackageList = listOf(
-        "com.jvckenwood.taitis.taitiscarapp",
-        "com.ubercab.driver",
-        "com.jvckenwood.taitis.cabmeekeyboard",
-        "com.jvckenwood.taitis.carappupdater",
-        "com.jvckenwood.carappupdater",
-        "com.android.calculator2"
-    )
-
     private val autoStartIntervalOptions = listOf(5, 10, 20, 30, 60)
 
     private val _uiState = MutableStateFlow(
         HomeUiState(
-            slots = buildSlots(targetPackageList),
+            slots = List(10) { null },
             canReboot = context.checkSelfPermission(android.Manifest.permission.REBOOT) == PackageManager.PERMISSION_GRANTED
         )
     )
@@ -92,11 +85,14 @@ class MainViewModel @Inject constructor(
     private val _installedApps = MutableStateFlow<List<InstalledAppUiModel>>(emptyList())
     val installedApps: StateFlow<List<InstalledAppUiModel>> = _installedApps.asStateFlow()
 
+    // packageName -> slot(1..10) or null
+    private val _targetPackageSelections = MutableStateFlow<Map<String, Int?>>(emptyMap())
+    val targetPackageSelections: StateFlow<Map<String, Int?>> = _targetPackageSelections.asStateFlow()
+
     private val taps = mutableListOf<String>()
     private var startMs = 0L
 
     init {
-        loadAppEntries()
         loadInstalledApps()
         observeMainState()
     }
@@ -112,34 +108,41 @@ class MainViewModel @Inject constructor(
             .onEach { new ->
                 if (new is MainState.Success) {
                     val data = new.mainData
+                    val normalizedTargets = normalizeTargetList(data.targetPackageList)
                     _selectedAutoStartAppIndex.value = data.autoStartApplicationIndex.takeIf { it >= 0 }
                     _selectedAutoStartInterval.value = data.autoStartApplicationInterval
-                        .takeIf { it in autoStartIntervalOptions }
-                        ?: 30
+                        .takeIf { it in autoStartIntervalOptions } ?: 30
+
                     _uiState.value = _uiState.value.copy(
+                        slots = normalizedTargets.map { it.takeIf { pkg -> pkg.isNotBlank() } },
                         autoStartPackageName = data.autoStartApplicationIndex
-                            .takeIf { it in targetPackageList.indices }
-                            ?.let { targetPackageList[it] },
+                            .takeIf { it in normalizedTargets.indices }
+                            ?.let { normalizedTargets[it] }
+                            ?.takeIf { it.isNotBlank() }
+                            ?.takeIf { pkg -> pkg in _uiState.value.appEntries.keys },
                         autoStartIntervalSeconds = data.autoStartApplicationInterval
-                            .takeIf { it in autoStartIntervalOptions }
-                            ?: 30
+                            .takeIf { it in autoStartIntervalOptions } ?: 30
                     )
+
+                    loadAppEntriesForTargets(normalizedTargets)
+                    _autoStartAppOptions.value = buildAutoStartOptions(normalizedTargets)
+                    _targetPackageSelections.value = buildSelectionMap(normalizedTargets)
                     Timber.i("NEW COUNTER: ${data.counter}")
                 }
             }
             .launchIn(viewModelScope)
     }
 
-    private fun buildSlots(packages: List<String>): List<String?> {
-        val trimmed = packages.take(10)
-        return trimmed + List(10 - trimmed.size) { null }
+    private fun normalizeTargetList(targets: List<String>): List<String> {
+        val taken = targets.take(10)
+        return taken + List(10 - taken.size) { "" }
     }
 
-    private fun loadAppEntries() {
+    private fun loadAppEntriesForTargets(targets: List<String>) {
         val pm = context.packageManager
         viewModelScope.launch {
-            val loaded = uiState.value.slots
-                .filterNotNull()
+            val loaded = targets
+                .filter { it.isNotBlank() }
                 .distinct()
                 .mapNotNull { packageName ->
                     runCatching {
@@ -152,17 +155,29 @@ class MainViewModel @Inject constructor(
                 .toMap()
 
             _uiState.value = _uiState.value.copy(appEntries = loaded)
-            _autoStartAppOptions.value = buildAutoStartOptions()
+            _autoStartAppOptions.value = buildAutoStartOptions(targets)
         }
     }
 
-    private fun buildAutoStartOptions(): List<AutoStartAppOption> {
+    private fun buildAutoStartOptions(targets: List<String>): List<AutoStartAppOption> {
         val options = mutableListOf(AutoStartAppOption(index = null, label = "無し"))
-        targetPackageList.forEachIndexed { index, packageName ->
-            val label = uiState.value.appEntries[packageName]?.label ?: packageName
-            options += AutoStartAppOption(index = index, label = label)
+        targets.forEachIndexed { index, packageName ->
+            if (packageName.isNotBlank()) {
+                val label = _uiState.value.appEntries[packageName]?.label ?: packageName
+                options += AutoStartAppOption(index = index, label = label)
+            }
         }
         return options
+    }
+
+    private fun buildSelectionMap(targets: List<String>): Map<String, Int?> {
+        val map = mutableMapOf<String, Int?>()
+        targets.forEachIndexed { idx, pkg ->
+            if (pkg.isNotBlank()) {
+                map[pkg] = idx + 1
+            }
+        }
+        return map
     }
 
     fun updateAutoStartSettings(autoStartAppIndex: Int?, intervalSeconds: Int) {
@@ -173,6 +188,43 @@ class MainViewModel @Inject constructor(
                 autoStartApplicationIndex = normalizedIndex,
                 autoStartApplicationInterval = normalizedInterval
             )
+        }
+    }
+
+    fun getSelectableSlotsFor(packageName: String): List<Int?> {
+        val selectedBySelf = _targetPackageSelections.value[packageName]
+        val used = _targetPackageSelections.value
+            .filterKeys { it != packageName }
+            .values
+            .filterNotNull()
+            .toSet()
+        return listOf(null) + (1..10).filter { it !in used || it == selectedBySelf }
+    }
+
+    fun updateTargetPackageSelection(packageName: String, slot: Int?) {
+        val current = _targetPackageSelections.value.toMutableMap()
+
+        // remove duplicated slot assignment from others
+        if (slot != null) {
+            current.entries.forEach { entry ->
+                if (entry.key != packageName && entry.value == slot) {
+                    current[entry.key] = null
+                }
+            }
+        }
+
+        current[packageName] = slot
+        _targetPackageSelections.value = current
+
+        val targetList = MutableList(10) { "" }
+        current.forEach { (pkg, selectedSlot) ->
+            if (selectedSlot != null && selectedSlot in 1..10) {
+                targetList[selectedSlot - 1] = pkg
+            }
+        }
+
+        viewModelScope.launch {
+            updateTargetPackageUseCase(targetList)
         }
     }
 

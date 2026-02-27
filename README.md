@@ -19,6 +19,7 @@ CabmeeHomeApp は Android Automotive 向けのホーム画面アプリです。�
   - アプリ起動タブ: 自動起動アプリ（ドロップダウン）を選択可能（無しで無効化）
   - アプリ起動タブ: 自動起動時間（5/10/20/30/60秒）を選択可能
   - 表示設定タブ: インストール済みアプリ一覧をスクロール表示
+  - 各アプリに表示位置ドロップダウン（1〜10/空）を持ち、番号はアプリ間で排他制御
 - **表示設定アプリ一覧フィルタ**
   - `MainViewModel` の静的ブラックリスト（ワイルドカード `*` 対応）で非表示対象を除外
 - **自動起動**
@@ -56,6 +57,8 @@ CabmeeHomeApp は Android Automotive 向けのホーム画面アプリです。�
   - 起動時初期化（DataStore からカウンター＋自動起動設定読み込み）
 - `UpdateAutoStartAppSettingUseCase`
   - 自動起動設定の更新（StateManager更新＋DataStore永続化）
+- `UpdateTargetPackageUseCase`
+  - 表示設定タブの番号選択から targetPackageList を再構成して永続化
 - `StateManager`
   - `MainState` を StateFlow で保持
 - `MainRepository`

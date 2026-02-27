@@ -10,4 +10,6 @@ interface MainRepositoryInterface {
         autoStartApplicationIndex: Int,
         autoStartApplicationInterval: Int
     ): Result<Unit, String>
+
+    suspend fun saveTargetPackageList(targetPackageList: List<String>): Result<Unit, String>
 }
